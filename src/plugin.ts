@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { attrStylerVitePlugin as pluginMaker } from '../types/model';
 import { PluginUtils } from './PluginUtils';
 
@@ -40,7 +40,7 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
       for (const match of matches) {
         const [, attName, , spec, attrValue, bracket] = match;
-        const value = attrValue.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer);
+        const value = attrValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
 
         styles[attName] ??= [];
 
@@ -62,6 +62,7 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
       pluginUtils.writeFileContent(
         modelFilePath,
         `${pluginUtils.makeFileImportPath(fileSrc)}\n\n${typeFilePrefix}${Object.entries(styles)
+          .sort((a, b) => a[0].localeCompare(b[0]))
           .map(([attrName, values]) => `'${attrName}'?: ${Array.from(new Set(values ?? [])).join(' | ')}`)
           .join(';\n    ')};${typeFilePostfix}`,
       );

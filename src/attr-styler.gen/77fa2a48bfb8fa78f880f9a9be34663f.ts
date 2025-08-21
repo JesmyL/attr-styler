@@ -1,7 +1,9 @@
+import('../style.test.scss');
+
 declare module 'react' {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-    'st-style'?: 'Ab[b-]-A';
+    'st-empty'?: '';
     'st-go'?: 'BRO' | 'BRO1';
+    'st-style'?: 'Ab[b-]-A';
   }
 }
-
