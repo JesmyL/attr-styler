@@ -59,6 +59,11 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
         }
       }
 
+      if (!Object.keys(styles).length) {
+        pluginUtils.removeKnownFile(modelFilePath, fileSrc);
+        return;
+      }
+
       pluginUtils.writeFileContent(
         modelFilePath,
         `${pluginUtils.makeFileImportPath(fileSrc)}\n\n${typeFilePrefix}${Object.entries(styles)
