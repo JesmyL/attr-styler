@@ -1,7 +1,7 @@
 import 'react';
 const css = (_str: TemplateStringsArray) => {};
 
-const style = css`
+const _style = css`
   [st-style='Ab\[b-\]-A'] {
     color: blue;
   }

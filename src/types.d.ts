@@ -4,6 +4,7 @@ declare global {
   }
   interface DOMAttributes<T> {
     id?: string;
+    test?: T;
   }
 }
 
