@@ -17,7 +17,7 @@ export default defineConfig(() => {
       },
     },
     plugins: [
-      attrStylerVitePlugin(),
+      attrStylerVitePlugin({ fileExtToAnalize: ['.styler.ts', '.css', '.scss'] }),
       eslint({
         emitWarning: false,
         failOnError: true,

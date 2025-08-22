@@ -15,7 +15,10 @@ export class PluginUtils {
     this.dirName = process.cwd().replace(/\\/g, '/');
 
     this.makeFileImportPath = (fileSrc: string) =>
-      `import('../${fileSrc.slice(srcDirName.length).replace(singleQuoteReg, "\\'")}');`;
+      `import('../${fileSrc
+        .slice(srcDirName.length)
+        .replace(singleQuoteReg, "\\'")
+        .replace(/\.tsx?$/, '')}');`;
 
     this.generatesDir = `${this.dirName}${srcDirName === '/' ? '' : srcDirName}/attr-styler.gen` as const;
     this.knownFilesFilePath = `${this.generatesDir}/files.json` as const;

@@ -11,12 +11,17 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
     console.error(`The prefix '${prefix}' is incorrect. Use please default, '${defaultPrefix}'`);
     prefix = defaultPrefix;
   }
-  const typeFilePrefix = `declare module 'react' {\n  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {\n    `;
-  const typeFilePostfix = `\n  }\n}\n`;
 
   const extensions = pluginOptions?.fileExtToAnalize ?? (['.css', '.scss'] as const);
+  const includeAttrTypesHere = `[{${Date.now()}-${Math.random()}}]`;
+  const fileTemplate =
+    pluginOptions?.typeFileTemplate?.({ includeAttrTypesHere }) ??
+    `import 'react';\n\ndeclare module 'react' {\n  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {\n    ${includeAttrTypesHere}\n  }\n}\n`;
 
   const backslashReplacer = (_all: string, $1: string, $2: string) => $1 || $2;
+  const sortByEntryKey = (a: [string, string[]?], b: [string, string[]?]) => a[0].localeCompare(b[0]);
+  const mapTypeEntries = ([attrName, values]: [string, string[]?]) =>
+    `'${attrName}'?: ${Array.from(new Set(values ?? [])).join(' | ')}`;
 
   return {
     name: 'attrStylerVitePlugin',
@@ -63,13 +68,11 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
         pluginUtils.removeKnownFile(modelFilePath, fileSrc);
         return;
       }
+      const attrTypesText = Object.entries(styles).sort(sortByEntryKey).map(mapTypeEntries).join(';\n    ') + ';';
 
       pluginUtils.writeFileContent(
         modelFilePath,
-        `${pluginUtils.makeFileImportPath(fileSrc)}\n\n${typeFilePrefix}${Object.entries(styles)
-          .sort((a, b) => a[0].localeCompare(b[0]))
-          .map(([attrName, values]) => `'${attrName}'?: ${Array.from(new Set(values ?? [])).join(' | ')}`)
-          .join(';\n    ')};${typeFilePostfix}`,
+        `${pluginUtils.makeFileImportPath(fileSrc)}\n\n${fileTemplate.replace(includeAttrTypesHere, attrTypesText)}`,
       );
     },
   };

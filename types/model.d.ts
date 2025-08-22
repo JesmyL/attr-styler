@@ -9,6 +9,7 @@ declare interface PluginOptions {
   fileExtToAnalize?: `.${string}`[];
 
   srcDirName?: string;
+  typeFileTemplate?: (props: { includeAttrTypesHere: string }) => string;
 }
 
 declare function attrStylerVitePlugin(options?: PluginOptions): {
