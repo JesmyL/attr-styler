@@ -4,7 +4,7 @@ declare interface PluginOptions {
    */
   prefix?: `${string}-`;
   /** file extensions to analize attr-styles
-   * default:s ['.css', '.scss']
+   * default: ['.css', '.scss', '.attr-styler.ts']
    */
   fileExtToAnalize?: `.${string}`[];
 

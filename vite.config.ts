@@ -17,7 +17,16 @@ export default defineConfig(() => {
       },
     },
     plugins: [
-      attrStylerVitePlugin({ fileExtToAnalize: ['.styler.ts', '.css', '.scss'] }),
+      attrStylerVitePlugin({
+        fileExtToAnalize: ['.styler.ts', '.css', '.scss'],
+        typeFileTemplate: ({ includeAttrTypesHere }) => `
+declare module 'react' {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    ${includeAttrTypesHere}
+  }
+}
+`,
+      }),
       eslint({
         emitWarning: false,
         failOnError: true,

@@ -12,11 +12,14 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
     prefix = defaultPrefix;
   }
 
-  const extensions = pluginOptions?.fileExtToAnalize ?? (['.css', '.scss'] as const);
-  const includeAttrTypesHere = `[{${Date.now()}-${Math.random()}}]`;
+  const extensions = pluginOptions?.fileExtToAnalize ?? (['.css', '.scss', '.attr-styler.ts'] as const);
+  const includeAttrTypesHere = `@_%-%${Date.now()}%-%_@`;
   const fileTemplate =
-    pluginOptions?.typeFileTemplate?.({ includeAttrTypesHere }) ??
-    `import 'react';\n\ndeclare module 'react' {\n  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {\n    ${includeAttrTypesHere}\n  }\n}\n`;
+    (pluginOptions?.typeFileTemplate?.({ includeAttrTypesHere }).trim() ??
+      `import 'react';\n\ndeclare module 'react' {\n  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {\n    ${includeAttrTypesHere}\n  }\n}\n`) +
+    '\n';
+
+  const [, indent] = fileTemplate.match(new RegExp(`\\n?(\\s*)${includeAttrTypesHere}`)) ?? ['', ' '];
 
   const backslashReplacer = (_all: string, $1: string, $2: string) => $1 || $2;
   const sortByEntryKey = (a: [string, string[]?], b: [string, string[]?]) => a[0].localeCompare(b[0]);
@@ -68,7 +71,7 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
         pluginUtils.removeKnownFile(modelFilePath, fileSrc);
         return;
       }
-      const attrTypesText = Object.entries(styles).sort(sortByEntryKey).map(mapTypeEntries).join(';\n    ') + ';';
+      const attrTypesText = Object.entries(styles).sort(sortByEntryKey).map(mapTypeEntries).join(`;\n${indent}`) + ';';
 
       pluginUtils.writeFileContent(
         modelFilePath,
