@@ -18,7 +18,7 @@ export default defineConfig(() => {
     },
     plugins: [
       attrStylerVitePlugin({
-        fileExtToAnalize: ['.styler.ts', '.css', '.scss'],
+        fileExtToAnalize: ['.styler.ts', '.styler.txt', '.css', '.scss'],
         typeFileTemplate: ({ includeAttrTypesHere }) => `
 declare module 'react' {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {

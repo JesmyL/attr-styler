@@ -4,6 +4,5 @@ declare module 'react' {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
     'st-empty'?: '';
     'st-go'?: 'BRO' | 'BRO1';
-    'st-style'?: 'Ab[b-]-A';
   }
 }

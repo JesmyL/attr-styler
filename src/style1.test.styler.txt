@@ -1,0 +1,7 @@
+[st-txtStyle=Text] {
+  color: blue;
+}
+[st-txt=-1][st-txt=BRO][st-txt='BRO'][st-txt='76'][st-txt='88.3'] {
+  color: red;
+}
+ 

@@ -23,7 +23,11 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
   const backslashReplacer = (_all: string, $1: string, $2: string) => $1 || $2;
   const sortByEntryKey = (a: [string, string[]?], b: [string, string[]?]) => a[0].localeCompare(b[0]);
-  const sortByEntryValues = (a: string, b: string) => a.localeCompare(b);
+  const sortByEntryValues = (a: string, b: string) => {
+    return (a.startsWith('"') || a.startsWith("'") ? a.slice(1) : a).localeCompare(
+      b.startsWith('"') || b.startsWith("'") ? b.slice(1) : b,
+    );
+  };
   const emptyArray: [] = [];
   const mapTypeEntries = ([attrName, values]: [string, string[]?]) =>
     `'${attrName}'?: ${Array.from(new Set(values ?? emptyArray))
@@ -46,15 +50,31 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
       const content = '' + fs.readFileSync(fileSrc);
 
       const styles: Partial<Record<string, string[]>> = {};
-      const reg = new RegExp(`\\[(${prefix}[-a-z0-9_]+?)(([$^*]?)=(('|").*?\\5))?( \\w+)?\\]`, 'g');
+      const numericStr = '-?\\d+(\\.\\d+)?';
+      const reg = new RegExp(
+        `\\[(${prefix}[-a-zA-Z0-9_]+?)(([$^*]?)=(('|")((${numericStr})|.*?)\\5|(${numericStr})|([a-zA-Z_]+)))?( [a-zsi])?\\]`,
+        'g',
+      );
 
       const matches = Array.from(content.matchAll(reg));
 
       for (const match of matches) {
-        const [, attName, , spec, attrValue, bracket] = match;
-        const value = attrValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
+        const [, attName, , spec, wholeValue, bracket, , numberInBracketsValue, , numericValue, , wordValue] = match;
+        let value = wholeValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
 
         styles[attName] ??= [];
+
+        if (numericValue) {
+          styles[attName].push(`'${value}'`, value);
+          continue;
+        }
+
+        if (numberInBracketsValue) {
+          styles[attName].push(value.slice(1, -1), value);
+          continue;
+        }
+
+        if (wordValue) value = `'${value}'`;
 
         switch (spec) {
           case '^':
