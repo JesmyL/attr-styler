@@ -65,10 +65,29 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
       const matches = Array.from(content.matchAll(reg));
 
       for (const match of matches) {
-        const [, attName, , , spec, wholeValue, bracket, , numberInBracketsValue, , numericValue, , wordValue] = match;
+        const [
+          ,
+          attName,
+          ,
+          specialValue,
+          specificator,
+          wholeValue,
+          bracket,
+          ,
+          numberInBracketsValue,
+          ,
+          numericValue,
+          ,
+          wordValue,
+        ] = match;
         let value = wholeValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
 
         styles[attName] ??= [];
+
+        if (!specialValue) {
+          styles[attName].push('string', 'number');
+          continue;
+        }
 
         if (numericValue) {
           styles[attName].push(`'${value}'`, value);
@@ -82,7 +101,7 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
         if (wordValue) value = `'${value}'`;
 
-        switch (spec) {
+        switch (specificator) {
           case '^':
             styles[attName].push('`${' + value + '}${string}`');
             break;
