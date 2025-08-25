@@ -28,17 +28,23 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
   const [, indent] = fileTemplate.match(new RegExp(`\\n?(\\s*)${includeAttrTypesHere}`)) ?? ['', ' '];
 
   const backslashReplacer = (_all: string, $1: string, $2: string) => $1 || $2;
-  const sortByEntryKey = (a: [string, string[]?], b: [string, string[]?]) => a[0].localeCompare(b[0]);
+  const sortByEntryKey = (a: [string, Set<string>?], b: [string, Set<string>?]) => a[0].localeCompare(b[0]);
   const sortByEntryValues = (a: string, b: string) => {
     return (a.startsWith('"') || a.startsWith("'") ? a.slice(1) : a).localeCompare(
       b.startsWith('"') || b.startsWith("'") ? b.slice(1) : b,
     );
   };
-  const emptyArray: [] = [];
-  const mapTypeEntries = ([attrName, values]: [string, string[]?]) =>
-    `'${attrName}'?: ${Array.from(new Set(values ?? emptyArray))
-      .sort(sortByEntryValues)
-      .join(' | ')}`;
+  const emptySet = new Set<string>();
+
+  const mapTypeEntries = ([attrName, values]: [string, Set<string>?]) => {
+    const valuesSet = values ?? emptySet;
+    if (valuesSet.size > 2 && valuesSet.has('string') && valuesSet.has('number')) {
+      valuesSet.delete('string');
+      valuesSet.delete('number');
+    }
+
+    return `'${attrName}'?: ${Array.from(valuesSet).sort(sortByEntryValues).join(' | ')}`;
+  };
 
   return {
     name: 'attrStylerVitePlugin',
@@ -55,7 +61,7 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
       const content = '' + fs.readFileSync(fileSrc);
 
-      const styles: Partial<Record<string, string[]>> = {};
+      const styles: Partial<Record<string, Set<string>>> = {};
       const numericStr = '-?\\d+(\\.\\d+)?';
       const reg = new RegExp(
         `\\[((${prefixesRegStr})[-a-zA-Z0-9_]+?)(([$^*]?)=(('|")((${numericStr})|.*?)\\6|(${numericStr})|([a-zA-Z_]+)))? ?[si]?\\]`,
@@ -82,20 +88,23 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
         ] = match;
         let value = wholeValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
 
-        styles[attName] ??= [];
+        styles[attName] ??= new Set();
 
         if (!specialValue) {
-          styles[attName].push('string', 'number');
+          styles[attName].add('string');
+          styles[attName].add('number');
           continue;
         }
 
         if (numericValue) {
-          styles[attName].push(`'${value}'`, value);
+          styles[attName].add(`'${value}'`);
+          styles[attName].add(value);
           continue;
         }
 
         if (numberInBracketsValue) {
-          styles[attName].push(value.slice(1, -1), value);
+          styles[attName].add(value.slice(1, -1));
+          styles[attName].add(value);
           continue;
         }
 
@@ -103,16 +112,16 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
         switch (specificator) {
           case '^':
-            styles[attName].push('`${' + value + '}${string}`');
+            styles[attName].add('`${' + value + '}${string}`');
             break;
           case '$':
-            styles[attName].push('`${string}${' + value + '}`');
+            styles[attName].add('`${string}${' + value + '}`');
             break;
           case '*':
-            styles[attName].push('`${string}${' + value + '}${string}`');
+            styles[attName].add('`${string}${' + value + '}${string}`');
             break;
           default:
-            styles[attName].push(value);
+            styles[attName].add(value);
         }
       }
 
