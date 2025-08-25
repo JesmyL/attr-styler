@@ -4,3 +4,10 @@
 [st-empty] {
   color: green;
 }
+[other-prefix-attr='123'] {
+  color: white;
+}
+
+[q123--AaA='-777.54321'] {
+  color: white;
+}

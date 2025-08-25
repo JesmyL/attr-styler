@@ -26,6 +26,7 @@ declare module 'react' {
   }
 }
 `,
+        prefixes: [`st-`, 'other-prefix-', 'q123--'],
       }),
       eslint({
         emitWarning: false,

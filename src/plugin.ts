@@ -3,14 +3,20 @@ import { attrStylerVitePlugin as pluginMaker } from '../types/model';
 import { PluginUtils } from './PluginUtils';
 
 export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
-  const defaultPrefix = 'st-';
+  const defaultPrefix = 'st-' as const;
   const pluginUtils = new PluginUtils(pluginOptions);
 
-  let prefix = pluginOptions?.prefix ?? defaultPrefix;
-  if (!prefix.endsWith('-') || prefix.match(/^[^a-z]|[^-a-z_0-9]/i)) {
-    console.error(`The prefix '${prefix}' is incorrect. Use please default, '${defaultPrefix}'`);
-    prefix = defaultPrefix;
-  }
+  const prefixes = (pluginOptions?.prefixes ?? [defaultPrefix]).filter(prefix => {
+    if (!prefix.endsWith('-') || prefix.match(/^[^a-z]|[^-a-z_0-9]/i)) {
+      console.error(`The prefix '${prefix}' is incorrect. Use please default, '${defaultPrefix}'`);
+      return false;
+    }
+
+    return true;
+  });
+
+  if (!prefixes.length || prefixes.length !== pluginOptions?.prefixes?.length) prefixes.push(defaultPrefix);
+  const prefixesRegStr = Array.from(new Set(prefixes)).join('|');
 
   const extensions = pluginOptions?.fileExtToAnalize ?? (['.css', '.scss', '.attr-styler.ts'] as const);
   const includeAttrTypesHere = `@_%-%${Date.now()}%-%_@`;
@@ -52,14 +58,14 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
       const styles: Partial<Record<string, string[]>> = {};
       const numericStr = '-?\\d+(\\.\\d+)?';
       const reg = new RegExp(
-        `\\[(${prefix}[-a-zA-Z0-9_]+?)(([$^*]?)=(('|")((${numericStr})|.*?)\\5|(${numericStr})|([a-zA-Z_]+)))?( [a-zsi])?\\]`,
+        `\\[((${prefixesRegStr})[-a-zA-Z0-9_]+?)(([$^*]?)=(('|")((${numericStr})|.*?)\\6|(${numericStr})|([a-zA-Z_]+)))? ?[si]?\\]`,
         'g',
       );
 
       const matches = Array.from(content.matchAll(reg));
 
       for (const match of matches) {
-        const [, attName, , spec, wholeValue, bracket, , numberInBracketsValue, , numericValue, , wordValue] = match;
+        const [, attName, , , spec, wholeValue, bracket, , numberInBracketsValue, , numericValue, , wordValue] = match;
         let value = wholeValue?.replace(new RegExp(`(\\\\{2})|\\\\([^${bracket}])`, 'g'), backslashReplacer) ?? "''";
 
         styles[attName] ??= [];

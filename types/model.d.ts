@@ -2,7 +2,7 @@ declare interface PluginOptions {
   /** prefix of your attributes
    * default: 'st-'
    */
-  prefix?: `${string}-`;
+  prefixes?: `${string}-`[];
   /** file extensions to analize attr-styles
    * default: ['.css', '.scss', '.attr-styler.ts']
    */
