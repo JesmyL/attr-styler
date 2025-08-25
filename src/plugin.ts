@@ -23,8 +23,12 @@ export const attrStylerVitePlugin: typeof pluginMaker = pluginOptions => {
 
   const backslashReplacer = (_all: string, $1: string, $2: string) => $1 || $2;
   const sortByEntryKey = (a: [string, string[]?], b: [string, string[]?]) => a[0].localeCompare(b[0]);
+  const sortByEntryValues = (a: string, b: string) => a.localeCompare(b);
+  const emptyArray: [] = [];
   const mapTypeEntries = ([attrName, values]: [string, string[]?]) =>
-    `'${attrName}'?: ${Array.from(new Set(values ?? [])).join(' | ')}`;
+    `'${attrName}'?: ${Array.from(new Set(values ?? emptyArray))
+      .sort(sortByEntryValues)
+      .join(' | ')}`;
 
   return {
     name: 'attrStylerVitePlugin',
